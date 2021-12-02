@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Sentosa visitor movement</title>
+		
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=950" >
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+		<script type="text/javascript" src="data.js"></script>
+		<script type="text/javascript" src="sessions.js"></script>
+		<script type="text/javascript" src="ImbiahStation.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<style type="text/css">
+			html, body {
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				
+				font-family: Helvetica, Verdana, Arial, sans-serif;
+			}
+			#content {
+				color:rgba(128,161,170,0.7);
+				position: relative;
+				width: 950px;
+			}
+			#container {
+				color:#FF0000;
+				position: absolute;
+				top: 20px;
+				left: 0;
+				cursor: pointer;
+			}
+			#canvas, #map, .label {
+				color:#FF0000;
+				position: absolute;
+				top: 0;
+				left: 0;
+			}
+			.label {
+				color: #034456;
+				font-size: 11px;
+				line-height: 12px;
+				width: 140px;
+				height: 22px;
+				padding: 3px;
+				overflow: hidden;
+				word-wrap: break-word;
+			}
+			.label.grey {
+				color: #84e0fb;
+				font-weight: bold;
+			}
+			#statistics {
+				position: absolute;
+				top: 750px;
+				left: 5px;
+				font-size: 20px;
+				color: #ffffff;
+				opacity: 0.7;
+			}
+			#PointCount{
+				position: absolute;
+				top: 700px;
+				left: 5px;
+				font-size: 20px;
+				color: #034456;
+				opacity: 0.7;
+			}
+			#timer {
+				position: absolute;
+				top: 800px;
+				left: 5px;
+				font-size: 16px;
+				font-weight: bold;
+				color: #ffffff;
+			}
+			#slider {
+				position: absolute;
+				width: 950px;
+				height: 50px;
+				top: 850px;
+				left: 0px;
+			}
+			#play {
+				top: 0px;
+				left: 0px;
+				width: 50px;
+				height: 50px;
+				background: #80a1aa;
+				border: 1px solid #80a1aa;
+				font-size: 12px;
+				text-align: center;
+				line-height: 15px;
+				border-radius: 50px;
+				background-image: url(play-pause.png);
+				background-repeat: no-repeat;
+				background-position: -50px 0px;
+				cursor: pointer;
+			}
+			#play.pause {
+				background-position: 0px 0px;
+			}
+			.speed {
+				width: 35px;
+				height: 17px;
+				position: absolute;
+				background: #fff;
+				color: #80a1aa;
+				border: 1px solid #80a1aa;
+				font-size: 11px;
+				left: 55px;
+				padding-top: 1px;
+				top: 0px;
+				text-align: center;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+			.speed.active {
+				color: #fff;
+				background: #80a1aa;
+			}
+			#sliderWrapper {
+				width: 1440px;
+				height: 50px;
+				border-radius: 50px;
+				overflow: hidden;
+				position: absolute;
+				top: 0px;
+				left: 95px;
+				border: 1px solid #80a1aa;
+				cursor: pointer;
+			}
+			#sliderInner {
+				width: 1440px;
+				height: 50px;
+				position: relative;
+				top: 0px;
+				cursor: pointer;
+				border-radius: 50px;
+				background-image: url(slider.png);
+				background-repeat: no-repeat;
+				background-position: 2px 0px;
+			}
+			.marker {
+				position: absolute;
+				top:0px;
+				border-left:  2px solid rgba(128,161,170,0.7);
+				height: 50px;
+			}
+			.smallmarker {
+				position: absolute;
+				top:22px;
+				border-left:  2px solid rgba(128,161,170,0.7);
+				height: 25px;
+			}
+			.hour {
+				position: absolute;
+				top: 20px;
+				height: 30px;
+				border-left: 2px solid rgba(128,161,170,0.4);
+				color: rgba(128,161,170,0.8);
+				font-size: 10px;
+				padding-left: 3px;
+			}
+			.hour.n {
+				top: 40px;
+				height: 10px;
+			}
+			.hour span {
+				position: absolute;
+				top: 0px;
+			}
+			.day {
+				position: absolute;
+				top: 0px;
+				height: 50px;
+				color: #80a1aa;
+				font-size: 12px;
+				padding-left: 83px;
+				width: 100px;
+			}
+			.day.b {
+				border-left: 1px solid #80a1aa;
+			}
+
+		</style>
+	</head>
+	<body>
+
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Sentosa visitor movement</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      
+     
+      <ul class="nav navbar-nav navbar-right">
+        
+        <li class="dropdown">
+          <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Imbiah Station <span class="caret"></span></a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+            <li><a href="file:///D:/SFSONG/Desktop/Relog/relog-master/clients/anim/frame.html">Anywhere</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="file:///D:/SFSONG/Desktop/Relog/relog-master/clients/anim/sentosaStation.html">Sentosa Station</a></li>
+            <li><a href="file:///D:/SFSONG/Desktop/Relog/relog-master/clients/anim/WFStation.html">Waterfront Station</a></li>
+            <li><a href="file:///D:/SFSONG/Desktop/Relog/relog-master/clients/anim/ImbiahStation.html">Imbiah Station</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+
+
+
+		<div class="row">
+			<div class="col-sm-4">
+				<h1 id="Sentosa"></h1>
+				<canvas id="mychart5" width="800" height="150"></canvas>
+				<h1 id="Water"></h1>
+				<canvas id="mychart7" width="800" height="150"></canvas>
+				<h1 id="Imbiah"></h1>
+				<canvas id="mychart2" width="800" height="150"></canvas>
+				<h1 id="beach"></h1>
+				<canvas id="mychart1" width="800" height="150"></canvas>
+				<h1 id="Wing"></h1>
+				<canvas id="mychart8" width="800" height="150"></canvas>
+
+
+			</div>
+			<div class="col-sm-4">
+			<div id="content">
+				<div id="container">
+				<img id="map" src="Sentosa1.png" width="1550" height="900">
+				<canvas id="canvas" width="1550" height="900"></canvas>
+				<!--<div class="label" id="stage1" style="left:105px; top:220px; width:160px"></div>
+				<div class="label" id="stage2" style="left:490px; top: 20px; width: 90px; height:46px"></div>
+				<div class="label" id="stage3" style="left:160px; top:335px; width:140px; height:34px"></div>
+				<div class="label" id="stage4" style="left:360px; top:335px; width:140px; height:34px"></div>
+				<div class="label" id="stage5" style="left:530px; top:335px; width:140px; height:34px"></div>
+				<div class="label" id="stage6" style="left:700px; top:335px; width:140px; height:34px"></div>
+				<div class="label" id="stage7" style="left:700px; top:395px; width:140px"></div>-->
+
+				<div class="label grey" style="left:498px; top:438px;">Beach Station</div> 
+				<div class="label grey" style="left:552px; top:380px;">Imbiah Station</div> 
+				<div class="label grey" style="left:825px; top:544px;">Others</div> 
+				<div class="label grey" style="left:614px; top:509px;">Palawan Beach</div> 
+				<div class="label grey" style="left:622px; top:104px;">Sentosa Station</div> 
+				<div class="label grey" style="left:320px; top:340px;">Siloso Beach</div> 
+				<div class="label grey" style="left:610px; top:316px;">WaterFront Station</div> 
+				<div class="label grey" style="left:473px; top:478px;">Wing of Time</div> 
+			</div>
+			<div id="statistics"></div>
+			<div id="PointCount"></div>
+			<div id="timer"></div>
+			<div id="slider">
+				<div id="play"></div>
+
+				<div id="speed1" class="speed" style="top: 0px">X1</div>
+				<div id="speed2" class="speed" style="top:18px">x2</div>
+				<div id="speed3" class="speed" style="top:36px">x4</div>
+
+				<div id="sliderWrapper">
+
+					<div id="sliderInner">
+						
+
+						
+						<!--<div class="hour n" style="left:0px"><span>0:00</span></div>
+						<div class="hour b" style="left:60px"></div>
+						<div class="hour n" style="left:120px"></div>
+						<div class="hour b" style="left:180px"><span>3:00</span></div>
+						<div class="hour n" style="left:240px"></div>
+						<div class="hour n" style="left:300px"></div>
+						<div class="hour b" style="left:360px"><span>6:00</span></div>
+						<div class="hour n" style="left:420px"></div>
+						<div class="hour n" style="left:480px"></div>
+						<div class="hour b" style="left:540px"><span>9:00</span></div>
+						<div class="hour n" style="left:600px"></div>
+						<div class="hour n" style="left:660px"></div>
+						<div class="hour b" style="left:720px"><span>12:00</span></div>
+						<div class="hour n" style="left:780px"></div>
+						<div class="hour n" style="left:840px"></div>
+						<div class="hour b" style="left:900px"><span>15:00</span></div>
+						<div class="hour n" style="left:960px"></div>
+						<div class="hour n" style="left:1020px"></div>
+						<div class="hour b" style="left:1080px"><span>18:00</span></div>
+						<div class="hour n" style="left:1140px"></div>
+						<div class="hour n" style="left:1200px"></div>
+						<div class="hour b" style="left:1260px"><span>21:00</span></div>
+						<div class="hour n" style="left:1320px"></div>
+						<div class="hour n" style="left:1380px"></div>
+						<div class="hour b" style="left:1440px"><span>24:00</span></div>
+						<div class="hour n" style="left:2400px"></div>
+						<div class="hour n" style="left:2460px"></div>
+						<div class="hour b" style="left:2520px"><span>18:00</span></div>
+						<div class="hour n" style="left:2580px"></div>
+						<div class="hour n" style="left:2640px"></div>
+						<div class="hour b" style="left:2700px"><span>21:00</span></div>
+						<div class="hour n" style="left:2760px"></div>
+						<div class="hour n" style="left:2820px"></div>
+						<div class="hour b" style="left:2880px"><span>0:00</span></div>
+						<div class="hour n" style="left:2940px"></div>
+						<div class="hour n" style="left:3000px"></div>
+						<div class="hour b" style="left:3060px"><span>3:00</span></div>
+						<div class="hour n" style="left:3120px"></div>
+						<div class="hour n" style="left:3180px"></div>
+						<div class="hour b" style="left:3240px"><span>6:00</span></div>
+						<div class="hour n" style="left:3300px"></div>
+						<div class="hour n" style="left:3360px"></div>
+						<div class="hour b" style="left:3420px"><span>9:00</span></div>
+						<div class="hour n" style="left:3480px"></div>
+						<div class="hour n" style="left:3540px"></div>
+						<div class="hour b" style="left:3600px"><span>12:00</span></div>
+						<div class="hour n" style="left:3660px"></div>
+						<div class="hour n" style="left:3720px"></div>
+						<div class="hour b" style="left:3780px"><span>15:00</span></div>
+						<div class="hour n" style="left:3840px"></div>
+						<div class="hour n" style="left:3900px"></div>
+						<div class="hour b" style="left:3960px"><span>18:00</span></div>
+						<div class="hour n" style="left:4020px"></div>
+						<div class="hour n" style="left:4080px"></div>
+						<div class="hour b" style="left:4140px"><span>21:00</span></div>
+						<div class="hour n" style="left:4200px"></div>
+						<div class="hour n" style="left:4260px"></div>
+						<div class="hour b" style="left:4320px"><span>0:00</span></div>
+						<div class="hour n" style="left:4380px"></div>
+						<div class="hour n" style="left:4440px"></div>
+						<div class="hour b" style="left:4500px"><span>3:00</span></div>
+						<div class="hour n" style="left:4560px"></div>
+						<div class="hour n" style="left:4620px"></div>
+						<div class="hour b" style="left:4680px"><span>6:00</span></div>
+						<div class="hour n" style="left:4740px"></div>
+						<div class="hour n" style="left:4800px"></div>
+						<div class="hour b" style="left:4860px"><span>9:00</span></div>
+						<div class="hour n" style="left:4920px"></div>
+						<div class="hour n" style="left:4980px"></div>
+						<div class="hour b" style="left:5040px"><span>12:00</span></div>
+						<div class="hour n" style="left:5100px"></div>
+						<div class="hour n" style="left:5160px"></div>
+						<div class="hour b" style="left:5220px"><span>15:00</span></div>
+						<div class="hour n" style="left:5280px"></div>
+						<div class="hour n" style="left:5340px"></div>
+						<div class="hour b" style="left:5400px"><span>18:00</span></div>
+						<div class="hour n" style="left:5460px"></div>
+						<div class="hour n" style="left:5520px"></div>
+						<div class="hour b" style="left:5580px"><span>21:00</span></div>
+						<div class="hour n" style="left:5640px"></div>
+						<div class="day b" style="left:   0px"><span>Aufbautag</span></div>
+						<div class="day n" style="left: 360px"><span>Aufbautag</span></div>
+						<div class="day n" style="left: 720px"><span>Aufbautag</span></div>
+						<div class="day n" style="left:1080px"><span>Aufbautag</span></div>
+						<div class="day b" style="left:1440px"><span>Tag 1</span></div>
+						<div class="day n" style="left:1800px"><span>Tag 1</span></div>
+						<div class="day n" style="left:2160px"><span>Tag 1</span></div>
+						<div class="day n" style="left:2520px"><span>Tag 1</span></div>
+						<div class="day b" style="left:2880px"><span>Tag 2</span></div>
+						<div class="day n" style="left:3240px"><span>Tag 2</span></div>
+						<div class="day n" style="left:3600px"><span>Tag 2</span></div>
+						<div class="day n" style="left:3960px"><span>Tag 2</span></div>
+						<div class="day b" style="left:4320px"><span>Tag 3</span></div>
+						<div class="day n" style="left:4680px"><span>Tag 3</span></div>
+						<div class="day n" style="left:5040px"><span>Tag 3</span></div>
+						<div class="day n" style="left:5400px"><span>Tag 3</span></div> -->
+					</div>
+					
+				</div>
+				<div class="smallmarker" style="left:155px"></div>
+				<div class="smallmarker" style="left:215px"></div>
+				<div class="marker" style="left:275px"><span>3:00 </span></div>
+				<div class="smallmarker" style="left:335px"></div>
+				<div class="smallmarker" style="left:395px"></div>
+				<div class="marker" style="left:455px"><span>6:00 </span></div>
+				<div class="smallmarker" style="left:515px"></div>
+				<div class="smallmarker" style="left:575px"></div>
+				<div class="marker" style="left:635px"><span>9:00 </span></div>
+				<div class="smallmarker" style="left:695px"></div>
+				<div class="smallmarker" style="left:755px"></div>
+				<div class="marker" style="left:815px"><span>12:00 </span></div>
+				<div class="smallmarker" style="left:875px"></div>
+				<div class="smallmarker" style="left:935px"></div>
+				<div class="marker" style="left:995px"><span>15:00</span></div>
+				<div class="smallmarker" style="left:1055px"></div>
+				<div class="smallmarker" style="left:1115px"></div>
+				<div class="marker" style="left:1175px"><span>18:00</span></div>
+				<div class="smallmarker" style="left:1235px"></div>
+				<div class="smallmarker" style="left:1295px"></div>
+				<div class="marker" style="left:1355px"><span>21:00</span></div>
+				<div class="smallmarker" style="left:1415px"></div>
+				<div class="smallmarker" style="left:1475px"></div>
+		</div>
+		</div>
+	</body>
+</html>
